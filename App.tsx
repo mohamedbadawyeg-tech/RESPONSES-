@@ -211,15 +211,6 @@ const App: React.FC = () => {
                 <Download size={20} />
                 تحميل نسخة
               </button>
-              <button
-                onClick={() => {
-                  setLastSubmitted(null);
-                  window.location.hash = 'form';
-                }}
-                className="px-8 py-4 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200"
-              >
-                تقييم جديد
-              </button>
             </div>
           </div>
         )}

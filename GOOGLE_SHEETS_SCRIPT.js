@@ -37,10 +37,10 @@ function handleResponse(e) {
     if (!sheet) {
       sheet = doc.insertSheet("Responses");
       var headers = [
-        "id", "timestamp", "employeeName", "jobTitle", "department", "date",
-        "q1_quality", "q2_quantity", "q3_punctuality", "q4_initiative", "q5_teamwork",
-        "achievements", "challenges", "goals", "skills", "environment",
-        "satisfaction", "promotion" // Removed summary
+        "id", "timestamp", "employeeName", "nationalId", "mobileNumber", "jobTitle", "location", "reviewDate",
+        "leadership", "planning", "technical", "development", "analytical", "innovation", "control",
+        "problemSolving", "communication", "behavior", "adaptability", "relationships", "unexpectedEvents", "equalOpportunity",
+        "improvementAreas", "plannedActions", "trainingActivities", "promotionPotential", "currentCapabilities", "employeeComments"
       ];
       sheet.appendRow(headers);
     }
@@ -74,20 +74,28 @@ function handleResponse(e) {
       new Date(),
       postData.employeeName,
       postData.jobTitle,
-      postData.department,
-      postData.date,
-      postData.ratings?.q1,
-      postData.ratings?.q2,
-      postData.ratings?.q3,
-      postData.ratings?.q4,
-      postData.ratings?.q5,
-      postData.achievements,
-      postData.challenges,
-      postData.goals,
-      postData.skills,
-      postData.environment,
-      postData.satisfaction,
-      postData.promotion
+      postData.location,
+      postData.reviewDate,
+      postData.ratings?.leadership,
+      postData.ratings?.planning,
+      postData.ratings?.technical,
+      postData.ratings?.development,
+      postData.ratings?.analytical,
+      postData.ratings?.innovation,
+      postData.ratings?.control,
+      postData.ratings?.problemSolving,
+      postData.ratings?.communication,
+      postData.ratings?.behavior,
+      postData.ratings?.adaptability,
+      postData.ratings?.relationships,
+      postData.ratings?.unexpectedEvents,
+      postData.ratings?.equalOpportunity,
+      postData.improvementAreas,
+      postData.plannedActions,
+      postData.trainingActivities,
+      postData.promotionPotential,
+      postData.currentCapabilities,
+      postData.employeeComments
     ];
     
     sheet.appendRow(nextRow);

@@ -20,16 +20,17 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({ onSubmit }) => {
     trainingActivities: '',
     promotionPotential: '',
     currentCapabilities: '',
-    summaryRating: '',
     employeeComments: ''
   });
 
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    const totalFields = 4 + PERFORMANCE_FACTORS.length + 3 + 1; // Header + Factors + Textareas + Radios
+    const totalFields = 6 + PERFORMANCE_FACTORS.length + 3 + 2; // Header (6) + Factors + Textareas + Radios
     let filled = 0;
     if (formData.employeeName) filled++;
+    if (formData.nationalId) filled++;
+    if (formData.mobileNumber) filled++;
     if (formData.jobTitle) filled++;
     if (formData.location) filled++;
     if (formData.reviewDate) filled++;
@@ -126,26 +127,6 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({ onSubmit }) => {
                 onChange={e => setFormData({ ...formData, reviewDate: e.target.value })}
               />
             </div>
-            <div className="space-y-6">
-              <h3 className="text-lg font-black border-r-4 border-indigo-500 pr-4">القدرات الحالية</h3>
-              <p className="text-slate-400 text-sm font-medium">صف قدراتك الحالية التي تؤهلك للمرحلة القادمة.</p>
-              <div className="space-y-3">
-                {PROMOTION_OPTIONS.map(opt => (
-                  <label key={opt} className={`flex items-center gap-4 p-5 rounded-2xl border-2 cursor-pointer transition-all ${
-                    formData.currentCapabilities === opt ? 'bg-indigo-800 border-indigo-400' : 'bg-indigo-950/50 border-indigo-800/50 hover:border-indigo-600'
-                  }`}>
-                    <input 
-                      type="radio" 
-                      name="currCapabilities" 
-                      className="w-5 h-5 accent-indigo-400"
-                      onChange={() => setFormData({...formData, currentCapabilities: opt})}
-                      checked={formData.currentCapabilities === opt}
-                    />
-                    <span className="font-bold text-sm">{opt}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
           </div>
         </div>
 
@@ -232,21 +213,22 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({ onSubmit }) => {
             </div>
 
             <div className="space-y-6">
-              <h3 className="text-lg font-black border-r-4 border-indigo-500 pr-4">النتيجة الإجمالية</h3>
-              <div className="grid grid-cols-1 gap-3">
-                {SUMMARY_RATINGS.map(rating => (
-                  <button
-                    key={rating}
-                    type="button"
-                    onClick={() => setFormData({...formData, summaryRating: rating})}
-                    className={`p-5 rounded-2xl border-2 font-black transition-all text-sm text-right ${
-                      formData.summaryRating === rating
-                      ? 'bg-white text-indigo-900 border-white shadow-xl scale-105'
-                      : 'bg-indigo-950/50 border-indigo-800/50 hover:border-indigo-600'
-                    }`}
-                  >
-                    {rating}
-                  </button>
+              <h3 className="text-lg font-black border-r-4 border-indigo-500 pr-4">القدرات الحالية</h3>
+              <p className="text-slate-400 text-sm font-medium">صف قدراتك الحالية التي تؤهلك للمرحلة القادمة.</p>
+              <div className="space-y-3">
+                {PROMOTION_OPTIONS.map(opt => (
+                  <label key={opt} className={`flex items-center gap-4 p-5 rounded-2xl border-2 cursor-pointer transition-all ${
+                    formData.currentCapabilities === opt ? 'bg-indigo-800 border-indigo-400' : 'bg-indigo-950/50 border-indigo-800/50 hover:border-indigo-600'
+                  }`}>
+                    <input 
+                      type="radio" 
+                      name="currCapabilities" 
+                      className="w-5 h-5 accent-indigo-400"
+                      onChange={() => setFormData({...formData, currentCapabilities: opt})}
+                      checked={formData.currentCapabilities === opt}
+                    />
+                    <span className="font-bold text-sm">{opt}</span>
+                  </label>
                 ))}
               </div>
             </div>

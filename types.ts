@@ -12,6 +12,8 @@ export interface PromotionStatus {
 export interface AssessmentResponse {
   id: string;
   employeeName: string;
+  nationalId: string;
+  mobileNumber: string;
   jobTitle: string;
   location: string;
   reviewDate: string;
@@ -21,7 +23,6 @@ export interface AssessmentResponse {
   trainingActivities: string;
   promotionPotential: string;
   currentCapabilities: string;
-  // summaryRating: string;
   employeeComments: string;
   timestamp: string;
 }
