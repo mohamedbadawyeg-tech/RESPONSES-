@@ -8,6 +8,7 @@ const App: React.FC = () => {
   const [view, setView] = useState<'form' | 'admin' | 'success'>('form');
   const [responses, setResponses] = useState<AssessmentResponse[]>([]);
   const [lastSubmitted, setLastSubmitted] = useState<AssessmentResponse | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
@@ -57,11 +58,6 @@ const App: React.FC = () => {
   // Fetch responses when entering admin view and authenticated
   useEffect(() => {
     if (view === 'admin' && isAuthenticated) {
-      if (GOOGLE_SCRIPT_URL === "PASTE_YOUR_WEB_APP_URL_HERE") {
-        console.warn("Please set the GOOGLE_SCRIPT_URL in App.tsx");
-        return;
-      }
-
       fetch(`${GOOGLE_SCRIPT_URL}?action=read`)
         .then(res => res.json())
         .then(data => setResponses(data))
@@ -70,11 +66,7 @@ const App: React.FC = () => {
   }, [view, isAuthenticated]);
 
   const handleSubmit = async (response: AssessmentResponse) => {
-    if (GOOGLE_SCRIPT_URL === "PASTE_YOUR_WEB_APP_URL_HERE") {
-      alert("Please configure the Google Script URL in the code first!");
-      return;
-    }
-
+    setIsSubmitting(true);
     try {
       console.log('Sending data to:', GOOGLE_SCRIPT_URL);
       
@@ -102,6 +94,8 @@ const App: React.FC = () => {
     } catch (error) {
       console.error('Error submitting form:', error);
       alert('فشل الاتصال بالخادم. يرجى التحقق من اتصال الإنترنت أو إعدادات رابط جوجل شيت.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 

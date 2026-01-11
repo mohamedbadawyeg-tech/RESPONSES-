@@ -318,7 +318,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ responses, onImport, on
                   <p className="text-indigo-400 text-xs font-black uppercase tracking-widest mb-2">التقييم الإجمالي النهائي</p>
                   <h4 className="text-3xl font-black text-indigo-300">
                     {Object.values(selectedResponse.ratings).length > 0 
-                      ? (Object.values(selectedResponse.ratings).reduce((a, b) => a + b, 0) / Object.values(selectedResponse.ratings).length).toFixed(1)
+                      ? ((Object.values(selectedResponse.ratings) as number[]).reduce((a, b) => a + b, 0) / Object.values(selectedResponse.ratings).length).toFixed(1)
                       : '-'
                     }
                   </h4>
