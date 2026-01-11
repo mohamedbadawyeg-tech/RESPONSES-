@@ -13,7 +13,7 @@ const App: React.FC = () => {
   const [loginError, setLoginError] = useState('');
   
   // ⚠️ PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE ⚠️
-  const GOOGLE_SCRIPT_URL = "PASTE_YOUR_WEB_APP_URL_HERE";
+  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzTMko4EGh5GPpqKY0oyghf2y3EgtR7N6n8MvP2v-i03FCDhLtQ8Bv4lRIPQILwRxXrGQ/exec";
 
   useEffect(() => {
     const handleHashChange = () => {
