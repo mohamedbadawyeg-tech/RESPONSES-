@@ -14,7 +14,7 @@ const App: React.FC = () => {
   const [loginError, setLoginError] = useState('');
   
   // ⚠️ PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE ⚠️
-  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz3JN4NhMxdINS2805ef9eCvk8KOWOxS99A3FMcd95w07f2j0ZTNcBfQeIE5s66Wg6WJg/exec";
+  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwkW3Tn3gjxkI6-y-NC9HU8f2N4YXi2bJg3syht4BeJreEcLhk2A4G2jkRdHUdArNk0/exec";
 
   useEffect(() => {
     // Check for previous submission
