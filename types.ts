@@ -21,7 +21,7 @@ export interface AssessmentResponse {
   trainingActivities: string;
   promotionPotential: string;
   currentCapabilities: string;
-  summaryRating: string;
+  // summaryRating: string;
   employeeComments: string;
   timestamp: string;
 }

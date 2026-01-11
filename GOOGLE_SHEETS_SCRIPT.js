@@ -40,7 +40,7 @@ function handleResponse(e) {
         "id", "timestamp", "employeeName", "jobTitle", "department", "date",
         "q1_quality", "q2_quantity", "q3_punctuality", "q4_initiative", "q5_teamwork",
         "achievements", "challenges", "goals", "skills", "environment",
-        "satisfaction", "promotion"
+        "satisfaction", "promotion" // Removed summary
       ];
       sheet.appendRow(headers);
     }

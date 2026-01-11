@@ -27,7 +27,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({ onSubmit }) => {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    const totalFields = 4 + PERFORMANCE_FACTORS.length + 3 + 2 + 1; // Header + Factors + Textareas + Radios + Summary
+    const totalFields = 4 + PERFORMANCE_FACTORS.length + 3 + 1; // Header + Factors + Textareas + Radios
     let filled = 0;
     if (formData.employeeName) filled++;
     if (formData.jobTitle) filled++;
@@ -39,7 +39,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({ onSubmit }) => {
     if (formData.trainingActivities) filled++;
     if (formData.promotionPotential) filled++;
     if (formData.currentCapabilities) filled++;
-    if (formData.summaryRating) filled++;
+    // if (formData.summaryRating) filled++;
 
     setProgress(Math.round((filled / totalFields) * 100));
   }, [formData]);
