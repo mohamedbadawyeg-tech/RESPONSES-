@@ -282,6 +282,17 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({ onSubmit }) => {
               </div>
             </div>
           </div>
+          
+          <div className="mt-8 pt-8 border-t border-indigo-800/50">
+            <h3 className="text-lg font-black text-white mb-4">تعليقات إضافية</h3>
+            <p className="text-indigo-300 text-sm mb-4">هل لديك أي تعليقات أخرى تود إضافتها؟</p>
+            <textarea
+              className="w-full p-6 bg-indigo-950/50 border-2 border-indigo-800 rounded-[24px] focus:border-indigo-400 focus:bg-indigo-900 transition-all outline-none min-h-[120px] text-white font-medium leading-relaxed"
+              value={formData.employeeComments}
+              onChange={e => setFormData({ ...formData, employeeComments: e.target.value })}
+              placeholder="اكتب تعليقك هنا..."
+            />
+          </div>
         </div>
 
         {/* Submit Bar */}

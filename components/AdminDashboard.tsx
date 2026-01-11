@@ -169,27 +169,38 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ responses, onImport, on
               <tr className="bg-slate-50 border-b border-slate-100">
                 <th className="px-8 py-5 text-sm font-black text-slate-500">الموظف</th>
                 <th className="px-8 py-5 text-sm font-black text-slate-500">المسمى الوظيفي</th>
+                <th className="px-8 py-5 text-sm font-black text-slate-500">رقم الموبايل</th>
                 <th className="px-8 py-5 text-sm font-black text-slate-500">التقييم العام</th>
                 <th className="px-8 py-5 text-sm font-black text-slate-500 text-center">التفاصيل</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
-              {filteredResponses.map(res => (
+              {filteredResponses.map(res => {
+                const avgScore = Object.values(res.ratings).length > 0 
+                  ? (Object.values(res.ratings).reduce((a, b) => a + b, 0) / Object.values(res.ratings).length).toFixed(1)
+                  : '-';
+                  
+                return (
                 <tr key={res.id} className="hover:bg-slate-50/50 transition-colors group">
                   <td className="px-8 py-6">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-black text-sm">
                         {res.employeeName.charAt(0)}
                       </div>
-                      <span className="font-black text-slate-700">{res.employeeName}</span>
+                      <div>
+                        <span className="block font-black text-slate-700">{res.employeeName}</span>
+                        <span className="text-xs text-slate-400">{res.nationalId}</span>
+                      </div>
                     </div>
                   </td>
                   <td className="px-8 py-6 text-slate-500 font-bold">{res.jobTitle}</td>
+                  <td className="px-8 py-6 text-slate-500 font-bold" dir="ltr">{res.mobileNumber}</td>
                   <td className="px-8 py-6">
-                    <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                      res.summaryRating === 'يتجاوز التوقعات' ? 'bg-green-100 text-green-700' : 'bg-indigo-50 text-indigo-700'
+                    <span className={`px-4 py-1.5 rounded-full text-[12px] font-black uppercase tracking-wider ${
+                      Number(avgScore) >= 4 ? 'bg-green-100 text-green-700' : 
+                      Number(avgScore) >= 3 ? 'bg-indigo-50 text-indigo-700' : 'bg-amber-50 text-amber-700'
                     }`}>
-                      {res.summaryRating}
+                      {avgScore} / 5
                     </span>
                   </td>
                   <td className="px-8 py-6 text-center">
@@ -201,7 +212,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ responses, onImport, on
                     </button>
                   </td>
                 </tr>
-              ))}
+              )})}
               {filteredResponses.length === 0 && (
                 <tr>
                   <td colSpan={4} className="px-8 py-20 text-center text-slate-300 italic font-medium">لا توجد بيانات متاحة حالياً</td>
@@ -249,7 +260,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ responses, onImport, on
               <h1 className="text-4xl font-black text-slate-900 mb-2">تقرير التقييم الذاتي للموظف</h1>
               <div className="grid grid-cols-2 gap-4 text-lg">
                 <p><strong>الاسم:</strong> {selectedResponse.employeeName}</p>
+                <p><strong>الرقم القومي:</strong> {selectedResponse.nationalId}</p>
                 <p><strong>الوظيفة:</strong> {selectedResponse.jobTitle}</p>
+                <p><strong>رقم الموبايل:</strong> {selectedResponse.mobileNumber}</p>
                 <p><strong>التاريخ:</strong> {selectedResponse.reviewDate}</p>
                 <p><strong>الموقع:</strong> {selectedResponse.location}</p>
               </div>
@@ -279,7 +292,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ responses, onImport, on
                 {[
                   { label: 'مجالات التحسين المستهدفة', text: selectedResponse.improvementAreas, color: 'bg-indigo-50 border-indigo-100 text-indigo-900' },
                   { label: 'الإجراءات والخطوات المخطط لها', text: selectedResponse.plannedActions, color: 'bg-emerald-50 border-emerald-100 text-emerald-900' },
-                  { label: 'الاحتياجات التدريبية والتطويرية', text: selectedResponse.trainingActivities, color: 'bg-amber-50 border-amber-100 text-amber-900' }
+                  { label: 'الاحتياجات التدريبية والتطويرية', text: selectedResponse.trainingActivities, color: 'bg-amber-50 border-amber-100 text-amber-900' },
+                  { label: 'تعليقات الموظف الإضافية', text: selectedResponse.employeeComments, color: 'bg-slate-50 border-slate-100 text-slate-900' }
                 ].map((sec, i) => (
                   <div key={i} className={`p-8 rounded-[32px] border ${sec.color}`}>
                     <h4 className="font-black text-lg mb-4 underline decoration-2 underline-offset-8">{sec.label}</h4>
@@ -292,12 +306,22 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ responses, onImport, on
               <div className="bg-slate-900 p-10 rounded-[40px] text-white flex flex-col md:flex-row justify-between gap-10 items-center">
                 <div className="text-center md:text-right flex-1">
                   <p className="text-indigo-400 text-xs font-black uppercase tracking-widest mb-2">إمكانية الترقية والنمو</p>
-                  <h4 className="text-2xl font-black">{selectedResponse.promotionPotential}</h4>
+                  <h4 className="text-2xl font-black">{selectedResponse.promotionPotential || '-'}</h4>
+                </div>
+                <div className="w-px h-16 bg-slate-800 hidden md:block"></div>
+                <div className="text-center md:text-center flex-1">
+                   <p className="text-indigo-400 text-xs font-black uppercase tracking-widest mb-2">القدرات الحالية</p>
+                   <h4 className="text-2xl font-black">{selectedResponse.currentCapabilities || '-'}</h4>
                 </div>
                 <div className="w-px h-16 bg-slate-800 hidden md:block"></div>
                 <div className="text-center md:text-left flex-1">
                   <p className="text-indigo-400 text-xs font-black uppercase tracking-widest mb-2">التقييم الإجمالي النهائي</p>
-                  <h4 className="text-3xl font-black text-indigo-300">{selectedResponse.summaryRating}</h4>
+                  <h4 className="text-3xl font-black text-indigo-300">
+                    {Object.values(selectedResponse.ratings).length > 0 
+                      ? (Object.values(selectedResponse.ratings).reduce((a, b) => a + b, 0) / Object.values(selectedResponse.ratings).length).toFixed(1)
+                      : '-'
+                    }
+                  </h4>
                 </div>
               </div>
             </div>
