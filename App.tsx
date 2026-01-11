@@ -13,7 +13,7 @@ const App: React.FC = () => {
   const [loginError, setLoginError] = useState('');
   
   // ⚠️ PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE ⚠️
-  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzTMko4EGh5GPpqKY0oyghf2y3EgtR7N6n8MvP2v-i03FCDhLtQ8Bv4lRIPQILwRxXrGQ/exec";
+  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz3JN4NhMxdINS2805ef9eCvk8KOWOxS99A3FMcd95w07f2j0ZTNcBfQeIE5s66Wg6WJg/exec";
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -192,26 +192,37 @@ const App: React.FC = () => {
           </div>
         )}
 
-        {view === 'success' && lastSubmitted && (
+        {view === 'success' && (
           <div className="max-w-2xl mx-auto mt-20 bg-white p-12 rounded-[40px] shadow-xl border border-slate-100 text-center animate-in zoom-in duration-500">
             <div className="w-24 h-24 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
               <CheckCircle2 size={48} />
             </div>
             <h2 className="text-3xl font-black text-slate-800 mb-4">تم إرسال التقييم بنجاح!</h2>
             <p className="text-slate-500 text-lg mb-8 leading-relaxed">
-              شكرًا لك {lastSubmitted.employeeName}.<br/>
-              تم حفظ تقييمك بنجاح في النظام ويمكن للمسؤولين الاطلاع عليه.
+              {lastSubmitted ? (
+                <>
+                  شكرًا لك {lastSubmitted.employeeName}.<br/>
+                  تم حفظ تقييمك بنجاح في النظام ويمكن للمسؤولين الاطلاع عليه.
+                </>
+              ) : (
+                <>
+                  لقد قمت بإرسال التقييم مسبقاً.<br/>
+                  لا يمكن إرسال تقييم جديد.
+                </>
+              )}
             </p>
             
-            <div className="flex justify-center gap-4">
-              <button
-                onClick={() => downloadResponse(lastSubmitted)}
-                className="flex items-center gap-2 px-8 py-4 bg-slate-100 text-slate-700 rounded-2xl font-bold hover:bg-slate-200 transition-colors"
-              >
-                <Download size={20} />
-                تحميل نسخة
-              </button>
-            </div>
+            {lastSubmitted && (
+              <div className="flex justify-center gap-4">
+                <button
+                  onClick={() => downloadResponse(lastSubmitted)}
+                  className="flex items-center gap-2 px-8 py-4 bg-slate-100 text-slate-700 rounded-2xl font-bold hover:bg-slate-200 transition-colors"
+                >
+                  <Download size={20} />
+                  تحميل نسخة
+                </button>
+              </div>
+            )}
           </div>
         )}
       </main>

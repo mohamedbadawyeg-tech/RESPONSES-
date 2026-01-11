@@ -11,6 +11,8 @@ interface AssessmentFormProps {
 const AssessmentForm: React.FC<AssessmentFormProps> = ({ onSubmit }) => {
   const [formData, setFormData] = useState({
     employeeName: '',
+    nationalId: '',
+    mobileNumber: '',
     jobTitle: '',
     location: '',
     reviewDate: new Date().toISOString().split('T')[0],
@@ -54,8 +56,8 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({ onSubmit }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.employeeName || !formData.jobTitle) {
-      alert('يرجى التأكد من ملء البيانات الأساسية (الاسم والمسمى الوظيفي)');
+    if (!formData.employeeName || !formData.nationalId || !formData.mobileNumber || !formData.jobTitle) {
+      alert('يرجى التأكد من ملء البيانات الأساسية (الاسم، الرقم القومي، الموبايل، والمسمى الوظيفي)');
       return;
     }
     const response: AssessmentResponse = {
@@ -100,6 +102,28 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({ onSubmit }) => {
               />
             </div>
             <div className="space-y-3">
+              <label className="text-sm font-black text-slate-500 mr-1">الرقم القومي</label>
+              <input
+                required
+                type="number"
+                className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-2xl focus:border-indigo-500 focus:bg-white transition-all outline-none text-lg font-bold"
+                value={formData.nationalId}
+                onChange={e => setFormData({ ...formData, nationalId: e.target.value })}
+                placeholder="14 رقم"
+              />
+            </div>
+            <div className="space-y-3">
+              <label className="text-sm font-black text-slate-500 mr-1">رقم الموبايل</label>
+              <input
+                required
+                type="tel"
+                className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-2xl focus:border-indigo-500 focus:bg-white transition-all outline-none text-lg font-bold"
+                value={formData.mobileNumber}
+                onChange={e => setFormData({ ...formData, mobileNumber: e.target.value })}
+                placeholder="01xxxxxxxxx"
+              />
+            </div>
+            <div className="space-y-3">
               <label className="text-sm font-black text-slate-500 mr-1">المسمى الوظيفي</label>
               <input
                 required
@@ -110,7 +134,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({ onSubmit }) => {
               />
             </div>
             <div className="space-y-3">
-              <label className="text-sm font-black text-slate-500 mr-1">مكان العمل</label>
+              <label className="text-sm font-black text-slate-500 mr-1">الفرع / الجهة</label>
               <input
                 className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-2xl focus:border-indigo-500 focus:bg-white transition-all outline-none text-lg font-bold"
                 value={formData.location}
