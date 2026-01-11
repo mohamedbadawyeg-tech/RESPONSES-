@@ -11,6 +11,9 @@ const App: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
+  
+  // ⚠️ PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE ⚠️
+  const GOOGLE_SCRIPT_URL = "PASTE_YOUR_WEB_APP_URL_HERE";
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -29,7 +32,12 @@ const App: React.FC = () => {
   // Fetch responses when entering admin view and authenticated
   useEffect(() => {
     if (view === 'admin' && isAuthenticated) {
-      fetch('/api/responses')
+      if (GOOGLE_SCRIPT_URL === "PASTE_YOUR_WEB_APP_URL_HERE") {
+        console.warn("Please set the GOOGLE_SCRIPT_URL in App.tsx");
+        return;
+      }
+
+      fetch(`${GOOGLE_SCRIPT_URL}?action=read`)
         .then(res => res.json())
         .then(data => setResponses(data))
         .catch(err => console.error('Failed to fetch responses', err));
@@ -37,14 +45,22 @@ const App: React.FC = () => {
   }, [view, isAuthenticated]);
 
   const handleSubmit = async (response: AssessmentResponse) => {
+    if (GOOGLE_SCRIPT_URL === "PASTE_YOUR_WEB_APP_URL_HERE") {
+      alert("Please configure the Google Script URL in the code first!");
+      return;
+    }
+
     try {
-      const res = await fetch('/api/submit', {
+      // Use no-cors mode or text/plain to avoid CORS preflight issues with GAS
+      const res = await fetch(GOOGLE_SCRIPT_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        // content-type text/plain avoids CORS preflight OPTIONS request
         body: JSON.stringify(response),
       });
 
-      if (res.ok) {
+      const result = await res.json();
+
+      if (result.result === 'success') {
         setLastSubmitted(response);
         window.location.hash = 'success';
       } else {
@@ -52,27 +68,18 @@ const App: React.FC = () => {
       }
     } catch (error) {
       console.error('Error submitting form:', error);
-      alert('فشل الاتصال بالخادم.');
+      alert('فشل الاتصال بالخادم. تأكد من إعداد رابط جوجل شيت بشكل صحيح.');
     }
   };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      const res = await fetch('/api/admin/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setIsAuthenticated(true);
-        setLoginError('');
-      } else {
-        setLoginError('كلمة المرور غير صحيحة');
-      }
-    } catch (error) {
-      setLoginError('حدث خطأ في الاتصال');
+    // Simple client-side check since we are serverless
+    if (password === 'admin123') {
+       setIsAuthenticated(true);
+       setLoginError('');
+    } else {
+       setLoginError('كلمة المرور غير صحيحة');
     }
   };
 
