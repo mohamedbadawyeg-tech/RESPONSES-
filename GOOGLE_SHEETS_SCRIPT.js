@@ -73,6 +73,8 @@ function handleResponse(e) {
       postData.id || new Date().getTime().toString(),
       new Date(),
       postData.employeeName,
+      postData.nationalId,
+      postData.mobileNumber,
       postData.jobTitle,
       postData.location,
       postData.reviewDate,
