@@ -177,7 +177,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ responses, onImport, on
             <tbody className="divide-y divide-slate-50">
               {filteredResponses.map(res => {
                 const avgScore = Object.values(res.ratings).length > 0 
-                  ? (Object.values(res.ratings).reduce((a, b) => a + b, 0) / Object.values(res.ratings).length).toFixed(1)
+                  ? ((Object.values(res.ratings) as number[]).reduce((a, b) => a + b, 0) / Object.values(res.ratings).length).toFixed(1)
                   : '-';
                   
                 return (
