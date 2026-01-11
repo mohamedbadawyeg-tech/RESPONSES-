@@ -51,7 +51,9 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({ onSubmit, isSubmitting 
     
     // Auto-advance after short delay
     setTimeout(() => {
-      handleNext();
+      setDirection(1);
+      setCurrentStep(prev => prev + 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }, 300);
   };
 
