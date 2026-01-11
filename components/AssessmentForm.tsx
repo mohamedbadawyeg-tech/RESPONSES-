@@ -56,10 +56,33 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({ onSubmit }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.employeeName || !formData.nationalId || !formData.mobileNumber || !formData.jobTitle) {
-      alert('يرجى التأكد من ملء البيانات الأساسية (الاسم، الرقم القومي، الموبايل، والمسمى الوظيفي)');
+    
+    // Validate all fields
+    const missingFields = [];
+    
+    if (!formData.employeeName) missingFields.push('الاسم الكامل');
+    if (!formData.nationalId) missingFields.push('الرقم القومي');
+    if (!formData.mobileNumber) missingFields.push('رقم الموبايل');
+    if (!formData.jobTitle) missingFields.push('المسمى الوظيفي');
+    if (!formData.location) missingFields.push('الفرع / الجهة');
+    if (!formData.reviewDate) missingFields.push('التاريخ');
+    
+    // Check ratings
+    if (Object.keys(formData.ratings).length < PERFORMANCE_FACTORS.length) {
+      missingFields.push('تقييم جميع عوامل الأداء');
+    }
+    
+    if (!formData.improvementAreas) missingFields.push('مجالات التحسين والتطوير');
+    if (!formData.plannedActions) missingFields.push('الإجراءات المقترحة');
+    if (!formData.trainingActivities) missingFields.push('الاحتياجات التدريبية');
+    if (!formData.promotionPotential) missingFields.push('إمكانية الترقية');
+    if (!formData.currentCapabilities) missingFields.push('القدرات الحالية');
+
+    if (missingFields.length > 0) {
+      alert(`يرجى استكمال البيانات التالية:\n- ${missingFields.join('\n- ')}`);
       return;
     }
+
     const response: AssessmentResponse = {
       ...formData,
       id: `RES-${Date.now()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`,
@@ -136,6 +159,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({ onSubmit }) => {
             <div className="space-y-3">
               <label className="text-sm font-black text-slate-500 mr-1">الفرع / الجهة</label>
               <input
+                required
                 className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-2xl focus:border-indigo-500 focus:bg-white transition-all outline-none text-lg font-bold"
                 value={formData.location}
                 onChange={e => setFormData({ ...formData, location: e.target.value })}
@@ -200,6 +224,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({ onSubmit }) => {
             <label className="block text-2xl font-black text-slate-800 mb-2">{field.label}</label>
             <p className="text-slate-400 mb-6 font-medium text-sm">{field.hint}</p>
             <textarea
+              required
               className="w-full p-6 bg-slate-50 border-2 border-transparent rounded-[24px] focus:border-indigo-500 focus:bg-white transition-all outline-none min-h-[160px] text-lg font-bold leading-relaxed shadow-inner"
               value={formData[field.id as keyof typeof formData] as string}
               onChange={e => setFormData({ ...formData, [field.id]: e.target.value })}

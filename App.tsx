@@ -16,11 +16,36 @@ const App: React.FC = () => {
   const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz3JN4NhMxdINS2805ef9eCvk8KOWOxS99A3FMcd95w07f2j0ZTNcBfQeIE5s66Wg6WJg/exec";
 
   useEffect(() => {
+    // Check for previous submission
+    const hasSubmitted = localStorage.getItem('hasSubmitted');
+    const savedResponse = localStorage.getItem('lastSubmitted');
+    
+    if (hasSubmitted) {
+      if (savedResponse) {
+        try {
+          setLastSubmitted(JSON.parse(savedResponse));
+        } catch (e) {
+          console.error("Error parsing saved response", e);
+        }
+      } else {
+         setLastSubmitted({ employeeName: 'الموظف' } as AssessmentResponse);
+      }
+    }
+
     const handleHashChange = () => {
       const hash = window.location.hash;
-      if (hash === '#admin') setView('admin');
-      else if (hash === '#success') setView('success');
-      else setView('form');
+      const isSubmitted = localStorage.getItem('hasSubmitted');
+
+      if (hash === '#admin') {
+        setView('admin');
+      } else if (isSubmitted) {
+        setView('success');
+        if (hash !== '#success') window.location.hash = 'success';
+      } else if (hash === '#success') {
+        setView('success');
+      } else {
+        setView('form');
+      }
     };
 
     window.addEventListener('hashchange', handleHashChange);
@@ -51,24 +76,32 @@ const App: React.FC = () => {
     }
 
     try {
-      // Use no-cors mode or text/plain to avoid CORS preflight issues with GAS
+      console.log('Sending data to:', GOOGLE_SCRIPT_URL);
+      
       const res = await fetch(GOOGLE_SCRIPT_URL, {
         method: 'POST',
-        // content-type text/plain avoids CORS preflight OPTIONS request
+        headers: {
+          'Content-Type': 'text/plain;charset=utf-8',
+        },
         body: JSON.stringify(response),
       });
 
       const result = await res.json();
+      console.log('Submission result:', result);
 
       if (result.result === 'success') {
         setLastSubmitted(response);
+        // Save to localStorage to prevent resubmission
+        localStorage.setItem('hasSubmitted', 'true');
+        localStorage.setItem('lastSubmitted', JSON.stringify(response));
         window.location.hash = 'success';
       } else {
-        alert('حدث خطأ أثناء إرسال النموذج. يرجى المحاولة مرة أخرى.');
+        console.error('Script returned error:', result);
+        alert(`حدث خطأ أثناء إرسال النموذج: ${result.error || 'خطأ غير معروف'}`);
       }
     } catch (error) {
       console.error('Error submitting form:', error);
-      alert('فشل الاتصال بالخادم. تأكد من إعداد رابط جوجل شيت بشكل صحيح.');
+      alert('فشل الاتصال بالخادم. يرجى التحقق من اتصال الإنترنت أو إعدادات رابط جوجل شيت.');
     }
   };
 
