@@ -126,6 +126,26 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({ onSubmit }) => {
                 onChange={e => setFormData({ ...formData, reviewDate: e.target.value })}
               />
             </div>
+            <div className="space-y-6">
+              <h3 className="text-lg font-black border-r-4 border-indigo-500 pr-4">القدرات الحالية</h3>
+              <p className="text-slate-400 text-sm font-medium">صف قدراتك الحالية التي تؤهلك للمرحلة القادمة.</p>
+              <div className="space-y-3">
+                {PROMOTION_OPTIONS.map(opt => (
+                  <label key={opt} className={`flex items-center gap-4 p-5 rounded-2xl border-2 cursor-pointer transition-all ${
+                    formData.currentCapabilities === opt ? 'bg-indigo-800 border-indigo-400' : 'bg-indigo-950/50 border-indigo-800/50 hover:border-indigo-600'
+                  }`}>
+                    <input 
+                      type="radio" 
+                      name="currCapabilities" 
+                      className="w-5 h-5 accent-indigo-400"
+                      onChange={() => setFormData({...formData, currentCapabilities: opt})}
+                      checked={formData.currentCapabilities === opt}
+                    />
+                    <span className="font-bold text-sm">{opt}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 
