@@ -1,14 +1,15 @@
 
 import React, { useState, useEffect } from 'react';
-import { PERFORMANCE_FACTORS, RATING_LABELS, PROMOTION_OPTIONS, SUMMARY_RATINGS } from '../constants';
+import { PERFORMANCE_FACTORS, RATING_LABELS, PROMOTION_OPTIONS } from '../constants';
 import { AssessmentResponse } from '../types';
-import { Save, User, Briefcase, MapPin, Calendar, HelpCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Save, User, ArrowRight, ArrowLeft, CheckCircle2, HelpCircle } from 'lucide-react';
 
 interface AssessmentFormProps {
   onSubmit: (response: AssessmentResponse) => void;
+  isSubmitting: boolean;
 }
 
-const AssessmentForm: React.FC<AssessmentFormProps> = ({ onSubmit }) => {
+const AssessmentForm: React.FC<AssessmentFormProps> = ({ onSubmit, isSubmitting }) => {
   const [formData, setFormData] = useState({
     employeeName: '',
     nationalId: '',
@@ -25,64 +26,85 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({ onSubmit }) => {
     employeeComments: ''
   });
 
-  const [progress, setProgress] = useState(0);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [direction, setDirection] = useState(0);
 
-  useEffect(() => {
-    const totalFields = 6 + PERFORMANCE_FACTORS.length + 3 + 2; // Header (6) + Factors + Textareas + Radios
-    let filled = 0;
-    if (formData.employeeName) filled++;
-    if (formData.nationalId) filled++;
-    if (formData.mobileNumber) filled++;
-    if (formData.jobTitle) filled++;
-    if (formData.location) filled++;
-    if (formData.reviewDate) filled++;
-    filled += Object.keys(formData.ratings).length;
-    if (formData.improvementAreas) filled++;
-    if (formData.plannedActions) filled++;
-    if (formData.trainingActivities) filled++;
-    if (formData.promotionPotential) filled++;
-    if (formData.currentCapabilities) filled++;
-    // if (formData.summaryRating) filled++;
+  // Step Mapping:
+  // 0: Personal Info
+  // 1 to N: Factors
+  // N+1: Improvement Areas
+  // N+2: Planned Actions
+  // N+3: Training Activities
+  // N+4: Promotion Potential
+  // N+5: Current Capabilities
+  // N+6: Employee Comments & Submit
 
-    setProgress(Math.round((filled / totalFields) * 100));
-  }, [formData]);
+  const FACTOR_STEPS_START = 1;
+  const FACTOR_STEPS_END = FACTOR_STEPS_START + PERFORMANCE_FACTORS.length - 1;
+  const TOTAL_STEPS = FACTOR_STEPS_END + 7;
 
   const handleRatingChange = (factorId: string, score: number) => {
     setFormData(prev => ({
       ...prev,
       ratings: { ...prev.ratings, [factorId]: score }
     }));
+    
+    // Auto-advance after short delay
+    setTimeout(() => {
+      handleNext();
+    }, 300);
+  };
+
+  const validateStep = (step: number) => {
+    if (step === 0) {
+      if (!formData.employeeName) return 'يرجى إدخال الاسم الكامل';
+      if (!formData.nationalId) return 'يرجى إدخال الرقم القومي';
+      if (!formData.mobileNumber) return 'يرجى إدخال رقم الموبايل';
+      if (!formData.jobTitle) return 'يرجى إدخال المسمى الوظيفي';
+      if (!formData.location) return 'يرجى إدخال الفرع / الجهة';
+      if (!formData.reviewDate) return 'يرجى اختيار التاريخ';
+      return null;
+    }
+    
+    if (step >= FACTOR_STEPS_START && step <= FACTOR_STEPS_END) {
+      const factorIndex = step - FACTOR_STEPS_START;
+      const factor = PERFORMANCE_FACTORS[factorIndex];
+      if (!formData.ratings[factor.id]) return 'يرجى اختيار تقييم للمتابعة';
+      return null;
+    }
+
+    if (step === FACTOR_STEPS_END + 1 && !formData.improvementAreas) return 'هذا الحقل مطلوب';
+    if (step === FACTOR_STEPS_END + 2 && !formData.plannedActions) return 'هذا الحقل مطلوب';
+    if (step === FACTOR_STEPS_END + 3 && !formData.trainingActivities) return 'هذا الحقل مطلوب';
+    if (step === FACTOR_STEPS_END + 4 && !formData.promotionPotential) return 'يرجى اختيار إمكانية الترقية';
+    if (step === FACTOR_STEPS_END + 5 && !formData.currentCapabilities) return 'يرجى اختيار القدرات الحالية';
+    
+    return null;
+  };
+
+  const handleNext = () => {
+    const error = validateStep(currentStep);
+    if (error) {
+      alert(error);
+      return;
+    }
+    if (currentStep < TOTAL_STEPS - 1) {
+      setDirection(1);
+      setCurrentStep(prev => prev + 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const handlePrev = () => {
+    if (currentStep > 0) {
+      setDirection(-1);
+      setCurrentStep(prev => prev - 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Validate all fields
-    const missingFields = [];
-    
-    if (!formData.employeeName) missingFields.push('الاسم الكامل');
-    if (!formData.nationalId) missingFields.push('الرقم القومي');
-    if (!formData.mobileNumber) missingFields.push('رقم الموبايل');
-    if (!formData.jobTitle) missingFields.push('المسمى الوظيفي');
-    if (!formData.location) missingFields.push('الفرع / الجهة');
-    if (!formData.reviewDate) missingFields.push('التاريخ');
-    
-    // Check ratings
-    if (Object.keys(formData.ratings).length < PERFORMANCE_FACTORS.length) {
-      missingFields.push('تقييم جميع عوامل الأداء');
-    }
-    
-    if (!formData.improvementAreas) missingFields.push('مجالات التحسين والتطوير');
-    if (!formData.plannedActions) missingFields.push('الإجراءات المقترحة');
-    if (!formData.trainingActivities) missingFields.push('الاحتياجات التدريبية');
-    if (!formData.promotionPotential) missingFields.push('إمكانية الترقية');
-    if (!formData.currentCapabilities) missingFields.push('القدرات الحالية');
-
-    if (missingFields.length > 0) {
-      alert(`يرجى استكمال البيانات التالية:\n- ${missingFields.join('\n- ')}`);
-      return;
-    }
-
     const response: AssessmentResponse = {
       ...formData,
       id: `RES-${Date.now()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`,
@@ -91,30 +113,23 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({ onSubmit }) => {
     onSubmit(response);
   };
 
-  return (
-    <div className="relative">
-      {/* Floating Progress Bar */}
-      <div className="fixed top-20 left-0 w-full z-40 px-6 py-2 pointer-events-none">
-        <div className="max-w-7xl mx-auto h-2 bg-slate-200/50 backdrop-blur-md rounded-full overflow-hidden border border-white/50">
-          <div 
-            className="h-full bg-indigo-600 transition-all duration-500 ease-out"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-12 pb-32 max-w-4xl mx-auto">
-        {/* Header Info */}
-        <div className="bg-white p-10 rounded-[32px] shadow-sm border border-slate-100 ring-1 ring-slate-50">
-          <div className="flex items-center gap-4 mb-8">
+  const renderStepContent = () => {
+    // 0. Personal Info
+    if (currentStep === 0) {
+      return (
+        <div className="space-y-8 animate-in slide-in-from-right-8 duration-500">
+          <div className="flex items-center gap-4 mb-6">
             <div className="bg-indigo-50 p-3 rounded-2xl text-indigo-600">
               <User size={28} />
             </div>
-            <h2 className="text-3xl font-black text-slate-800">البيانات الشخصية</h2>
+            <div>
+              <h2 className="text-3xl font-black text-slate-800">البيانات الشخصية</h2>
+              <p className="text-slate-400 font-medium mt-1">يرجى إدخال بياناتك الأساسية للبدء</p>
+            </div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
               <label className="text-sm font-black text-slate-500 mr-1">الاسم الكامل</label>
               <input
                 required
@@ -124,29 +139,39 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({ onSubmit }) => {
                 placeholder="مثال: محمد أحمد"
               />
             </div>
-            <div className="space-y-3">
+            <div className="space-y-2">
               <label className="text-sm font-black text-slate-500 mr-1">الرقم القومي</label>
               <input
                 required
-                type="number"
+                type="text"
+                inputMode="numeric"
+                maxLength={14}
                 className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-2xl focus:border-indigo-500 focus:bg-white transition-all outline-none text-lg font-bold"
                 value={formData.nationalId}
-                onChange={e => setFormData({ ...formData, nationalId: e.target.value })}
+                onChange={e => {
+                  const val = e.target.value.replace(/\D/g, '').slice(0, 14);
+                  setFormData({ ...formData, nationalId: val });
+                }}
                 placeholder="14 رقم"
               />
             </div>
-            <div className="space-y-3">
+            <div className="space-y-2">
               <label className="text-sm font-black text-slate-500 mr-1">رقم الموبايل</label>
               <input
                 required
-                type="tel"
+                type="text"
+                inputMode="numeric"
+                maxLength={11}
                 className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-2xl focus:border-indigo-500 focus:bg-white transition-all outline-none text-lg font-bold"
                 value={formData.mobileNumber}
-                onChange={e => setFormData({ ...formData, mobileNumber: e.target.value })}
+                onChange={e => {
+                  const val = e.target.value.replace(/\D/g, '').slice(0, 11);
+                  setFormData({ ...formData, mobileNumber: val });
+                }}
                 placeholder="01xxxxxxxxx"
               />
             </div>
-            <div className="space-y-3">
+            <div className="space-y-2">
               <label className="text-sm font-black text-slate-500 mr-1">المسمى الوظيفي</label>
               <input
                 required
@@ -156,7 +181,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({ onSubmit }) => {
                 placeholder="مثال: مدير مشاريع"
               />
             </div>
-            <div className="space-y-3">
+            <div className="space-y-2">
               <label className="text-sm font-black text-slate-500 mr-1">الفرع / الجهة</label>
               <input
                 required
@@ -166,7 +191,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({ onSubmit }) => {
                 placeholder="الفرع أو المدينة"
               />
             </div>
-            <div className="space-y-3">
+            <div className="space-y-2">
               <label className="text-sm font-black text-slate-500 mr-1">التاريخ</label>
               <input
                 type="date"
@@ -177,137 +202,224 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({ onSubmit }) => {
             </div>
           </div>
         </div>
+      );
+    }
 
-        {/* Factors Section */}
-        <div className="bg-white rounded-[32px] shadow-sm border border-slate-100 overflow-hidden">
-          <div className="bg-indigo-600 p-10 text-white">
-            <h2 className="text-3xl font-black mb-2">عوامل تقييم الأداء</h2>
-            <p className="opacity-80 text-lg">يرجى قراءة كل وصف بعناية واختيار التقييم الذي يمثل مستواك الفعلي</p>
+    // Factors Steps
+    if (currentStep >= FACTOR_STEPS_START && currentStep <= FACTOR_STEPS_END) {
+      const factorIndex = currentStep - FACTOR_STEPS_START;
+      const factor = PERFORMANCE_FACTORS[factorIndex];
+      
+      return (
+        <div className="space-y-8 animate-in slide-in-from-right-8 duration-500">
+           <div className="bg-indigo-600 p-8 rounded-[32px] text-white shadow-xl shadow-indigo-200">
+            <span className="inline-block bg-white/20 px-4 py-1 rounded-full text-sm font-bold mb-4">
+              عامل {factorIndex + 1} من {PERFORMANCE_FACTORS.length}
+            </span>
+            <h2 className="text-3xl font-black mb-4">{factor.title}</h2>
+            <p className="text-xl opacity-90 leading-relaxed">{factor.description}</p>
           </div>
-          
-          <div className="divide-y divide-slate-50">
-            {PERFORMANCE_FACTORS.map((factor) => (
-              <div key={factor.id} className="p-10 hover:bg-slate-50/50 transition-colors">
-                <div className="mb-6">
-                  <h3 className="text-xl font-black text-indigo-900 mb-2">{factor.title}</h3>
-                  <p className="text-slate-500 leading-relaxed font-medium">{factor.description}</p>
+
+          <div className="grid grid-cols-1 gap-4">
+            {[5, 4, 3, 2, 1].map(score => (
+              <button
+                key={score}
+                onClick={() => handleRatingChange(factor.id, score)}
+                className={`flex items-center justify-between p-6 rounded-[24px] border-2 transition-all group ${
+                  formData.ratings[factor.id] === score
+                  ? 'bg-indigo-50 border-indigo-600 shadow-inner'
+                  : 'bg-white border-slate-100 hover:border-indigo-200 hover:bg-slate-50'
+                }`}
+              >
+                <div className="flex items-center gap-4">
+                  <span className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl font-black transition-colors ${
+                     formData.ratings[factor.id] === score ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-white'
+                  }`}>
+                    {score}
+                  </span>
+                  <span className={`text-lg font-bold ${
+                     formData.ratings[factor.id] === score ? 'text-indigo-900' : 'text-slate-600'
+                  }`}>
+                    {RATING_LABELS[score as keyof typeof RATING_LABELS]}
+                  </span>
                 </div>
-                <div className="flex flex-wrap gap-3">
-                  {[1, 2, 3, 4, 5].map(score => (
-                    <button
-                      key={score}
-                      type="button"
-                      onClick={() => handleRatingChange(factor.id, score)}
-                      className={`flex-1 min-w-[80px] py-4 rounded-2xl border-2 font-black transition-all ${
-                        formData.ratings[factor.id] === score
-                        ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg scale-105'
-                        : 'bg-white border-slate-200 text-slate-400 hover:border-indigo-200'
-                      }`}
-                    >
-                      {score}
-                      <span className="block text-[10px] opacity-70 mt-1">{RATING_LABELS[score as keyof typeof RATING_LABELS]}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
+                {formData.ratings[factor.id] === score && (
+                  <CheckCircle2 className="text-indigo-600" size={28} />
+                )}
+              </button>
             ))}
           </div>
         </div>
+      );
+    }
 
-        {/* Text Sections */}
-        {[
-          { id: 'improvementAreas', label: 'مجالات التحسين والتطوير:', hint: 'اذكر المهارات التي تود اكتسابها لزيادة فعاليتك' },
-          { id: 'plannedActions', label: 'الإجراءات المقترحة:', hint: 'خطوات عملية ستقوم بها أو تطلب من الشركة توفيرها' },
-          { id: 'trainingActivities', label: 'الاحتياجات التدريبية:', hint: 'دورات أو ورش عمل ترغب في الانضمام إليها' }
-        ].map(field => (
-          <div key={field.id} className="bg-white p-10 rounded-[32px] shadow-sm border border-slate-100">
-            <label className="block text-2xl font-black text-slate-800 mb-2">{field.label}</label>
-            <p className="text-slate-400 mb-6 font-medium text-sm">{field.hint}</p>
+    // Text Steps
+    const textSteps = [
+      { step: FACTOR_STEPS_END + 1, id: 'improvementAreas', label: 'مجالات التحسين والتطوير', hint: 'اذكر المهارات التي تود اكتسابها لزيادة فعاليتك' },
+      { step: FACTOR_STEPS_END + 2, id: 'plannedActions', label: 'الإجراءات المقترحة', hint: 'خطوات عملية ستقوم بها أو تطلب من الشركة توفيرها' },
+      { step: FACTOR_STEPS_END + 3, id: 'trainingActivities', label: 'الاحتياجات التدريبية', hint: 'دورات أو ورش عمل ترغب في الانضمام إليها' }
+    ];
+
+    const currentTextStep = textSteps.find(s => s.step === currentStep);
+    if (currentTextStep) {
+      return (
+        <div className="space-y-6 animate-in slide-in-from-right-8 duration-500">
+          <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm">
+            <h2 className="text-3xl font-black text-slate-800 mb-2">{currentTextStep.label}</h2>
+            <p className="text-slate-400 font-medium mb-8 text-lg">{currentTextStep.hint}</p>
             <textarea
               required
-              className="w-full p-6 bg-slate-50 border-2 border-transparent rounded-[24px] focus:border-indigo-500 focus:bg-white transition-all outline-none min-h-[160px] text-lg font-bold leading-relaxed shadow-inner"
-              value={formData[field.id as keyof typeof formData] as string}
-              onChange={e => setFormData({ ...formData, [field.id]: e.target.value })}
-              placeholder="..."
-            />
-          </div>
-        ))}
-
-        {/* Final Selection */}
-        <div className="bg-indigo-900 p-10 rounded-[32px] text-white shadow-2xl shadow-indigo-200">
-          <div className="flex items-center gap-4 mb-8">
-            <HelpCircle className="text-indigo-400" size={32} />
-            <h2 className="text-3xl font-black">الخلاصة والتقييم النهائي</h2>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-            <div className="space-y-6">
-              <h3 className="text-lg font-black border-r-4 border-indigo-500 pr-4">إمكانية الترقية</h3>
-              <div className="space-y-3">
-                {PROMOTION_OPTIONS.map(opt => (
-                  <label key={opt} className={`flex items-center gap-4 p-5 rounded-2xl border-2 cursor-pointer transition-all ${
-                    formData.promotionPotential === opt ? 'bg-indigo-800 border-indigo-400' : 'bg-indigo-950/50 border-indigo-800/50 hover:border-indigo-600'
-                  }`}>
-                    <input 
-                      type="radio" 
-                      name="promPotential" 
-                      className="w-5 h-5 accent-indigo-400"
-                      onChange={() => setFormData({...formData, promotionPotential: opt})}
-                      checked={formData.promotionPotential === opt}
-                    />
-                    <span className="font-bold text-sm">{opt}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-6">
-              <h3 className="text-lg font-black border-r-4 border-indigo-500 pr-4">القدرات الحالية</h3>
-              <p className="text-slate-400 text-sm font-medium">صف قدراتك الحالية التي تؤهلك للمرحلة القادمة.</p>
-              <div className="space-y-3">
-                {PROMOTION_OPTIONS.map(opt => (
-                  <label key={opt} className={`flex items-center gap-4 p-5 rounded-2xl border-2 cursor-pointer transition-all ${
-                    formData.currentCapabilities === opt ? 'bg-indigo-800 border-indigo-400' : 'bg-indigo-950/50 border-indigo-800/50 hover:border-indigo-600'
-                  }`}>
-                    <input 
-                      type="radio" 
-                      name="currCapabilities" 
-                      className="w-5 h-5 accent-indigo-400"
-                      onChange={() => setFormData({...formData, currentCapabilities: opt})}
-                      checked={formData.currentCapabilities === opt}
-                    />
-                    <span className="font-bold text-sm">{opt}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          </div>
-          
-          <div className="mt-8 pt-8 border-t border-indigo-800/50">
-            <h3 className="text-lg font-black text-white mb-4">تعليقات إضافية</h3>
-            <p className="text-indigo-300 text-sm mb-4">هل لديك أي تعليقات أخرى تود إضافتها؟</p>
-            <textarea
-              className="w-full p-6 bg-indigo-950/50 border-2 border-indigo-800 rounded-[24px] focus:border-indigo-400 focus:bg-indigo-900 transition-all outline-none min-h-[120px] text-white font-medium leading-relaxed"
-              value={formData.employeeComments}
-              onChange={e => setFormData({ ...formData, employeeComments: e.target.value })}
-              placeholder="اكتب تعليقك هنا..."
+              autoFocus
+              className="w-full p-6 bg-slate-50 border-2 border-transparent rounded-[24px] focus:border-indigo-500 focus:bg-white transition-all outline-none min-h-[250px] text-xl font-bold leading-relaxed shadow-inner"
+              value={formData[currentTextStep.id as keyof typeof formData] as string}
+              onChange={e => setFormData({ ...formData, [currentTextStep.id]: e.target.value })}
+              placeholder="اكتب هنا..."
             />
           </div>
         </div>
+      );
+    }
 
-        {/* Submit Bar */}
-        <div className="fixed bottom-8 left-0 w-full px-6 z-40 pointer-events-none">
-          <div className="max-w-4xl mx-auto flex justify-end pointer-events-auto">
+    // Radio Steps
+    if (currentStep === FACTOR_STEPS_END + 4) {
+      return (
+        <div className="space-y-8 animate-in slide-in-from-right-8 duration-500">
+          <h2 className="text-3xl font-black text-slate-800 px-2">إمكانية الترقية والنمو</h2>
+          <div className="grid grid-cols-1 gap-4">
+            {PROMOTION_OPTIONS.map(opt => (
+              <label key={opt} className={`flex items-center gap-6 p-8 rounded-[24px] border-2 cursor-pointer transition-all ${
+                formData.promotionPotential === opt ? 'bg-indigo-50 border-indigo-600 shadow-lg scale-[1.02]' : 'bg-white border-slate-100 hover:border-indigo-200'
+              }`}>
+                <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center ${
+                  formData.promotionPotential === opt ? 'border-indigo-600' : 'border-slate-300'
+                }`}>
+                  {formData.promotionPotential === opt && <div className="w-4 h-4 rounded-full bg-indigo-600" />}
+                </div>
+                <input 
+                  type="radio" 
+                  name="promPotential" 
+                  className="hidden"
+                  onChange={() => setFormData({...formData, promotionPotential: opt})}
+                  checked={formData.promotionPotential === opt}
+                />
+                <span className={`text-xl font-bold ${formData.promotionPotential === opt ? 'text-indigo-900' : 'text-slate-600'}`}>{opt}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    if (currentStep === FACTOR_STEPS_END + 5) {
+      return (
+        <div className="space-y-8 animate-in slide-in-from-right-8 duration-500">
+          <h2 className="text-3xl font-black text-slate-800 px-2">القدرات الحالية</h2>
+          <p className="text-slate-500 px-2 text-lg">صف قدراتك الحالية التي تؤهلك للمرحلة القادمة</p>
+          <div className="grid grid-cols-1 gap-4">
+            {PROMOTION_OPTIONS.map(opt => (
+              <label key={opt} className={`flex items-center gap-6 p-8 rounded-[24px] border-2 cursor-pointer transition-all ${
+                formData.currentCapabilities === opt ? 'bg-indigo-50 border-indigo-600 shadow-lg scale-[1.02]' : 'bg-white border-slate-100 hover:border-indigo-200'
+              }`}>
+                <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center ${
+                  formData.currentCapabilities === opt ? 'border-indigo-600' : 'border-slate-300'
+                }`}>
+                  {formData.currentCapabilities === opt && <div className="w-4 h-4 rounded-full bg-indigo-600" />}
+                </div>
+                <input 
+                  type="radio" 
+                  name="currCapabilities" 
+                  className="hidden"
+                  onChange={() => setFormData({...formData, currentCapabilities: opt})}
+                  checked={formData.currentCapabilities === opt}
+                />
+                <span className={`text-xl font-bold ${formData.currentCapabilities === opt ? 'text-indigo-900' : 'text-slate-600'}`}>{opt}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    // Final Step: Comments
+    if (currentStep === FACTOR_STEPS_END + 6) {
+      return (
+        <div className="space-y-8 animate-in slide-in-from-right-8 duration-500">
+          <div className="bg-indigo-900 p-10 rounded-[32px] text-white shadow-2xl shadow-indigo-200">
+            <div className="flex items-center gap-4 mb-8">
+              <HelpCircle className="text-indigo-400" size={32} />
+              <h2 className="text-3xl font-black">تعليقات إضافية</h2>
+            </div>
+            
+            <p className="text-indigo-200 text-lg mb-6">هل لديك أي ملاحظات أخرى تود إضافتها قبل إرسال التقييم؟</p>
+            
+            <textarea
+              className="w-full p-6 bg-indigo-950/50 border-2 border-indigo-800 rounded-[24px] focus:border-indigo-400 focus:bg-indigo-900 transition-all outline-none min-h-[200px] text-white font-medium leading-relaxed mb-8"
+              value={formData.employeeComments}
+              onChange={e => setFormData({ ...formData, employeeComments: e.target.value })}
+              placeholder="اكتب تعليقك هنا (اختياري)..."
+            />
+
             <button
-              type="submit"
-              className="group flex items-center gap-4 bg-indigo-600 hover:bg-indigo-700 text-white px-12 py-6 rounded-[28px] font-black text-xl shadow-2xl shadow-indigo-300 hover:-translate-y-1 transition-all"
+              onClick={handleSubmit}
+              className="w-full flex items-center justify-center gap-4 bg-white text-indigo-900 hover:bg-indigo-50 px-12 py-6 rounded-[24px] font-black text-xl transition-all hover:scale-[1.02]"
             >
-              <span>حفظ وإرسال التقييم</span>
-              <Save size={24} className="group-hover:scale-110 transition-transform" />
+              <span>حفظ وإرسال التقييم النهائي</span>
+              <Save size={24} />
             </button>
           </div>
         </div>
-      </form>
+      );
+    }
+  };
+
+  const progress = Math.round(((currentStep) / (TOTAL_STEPS - 1)) * 100);
+
+  return (
+    <div className="max-w-3xl mx-auto pb-32">
+      {/* Progress Bar */}
+      <div className="fixed top-20 left-0 w-full z-40">
+        <div className="h-1.5 bg-slate-100">
+          <div 
+            className="h-full bg-indigo-600 transition-all duration-500 ease-out"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      </div>
+
+      <div className="mt-8 px-2 mb-8 flex items-center justify-between text-slate-400 font-bold text-sm uppercase tracking-widest">
+        <span>خطوة {currentStep + 1} من {TOTAL_STEPS}</span>
+        <span>{Math.round(progress)}% مكتمل</span>
+      </div>
+
+      {renderStepContent()}
+
+      {/* Navigation Bar */}
+      {currentStep < TOTAL_STEPS - 1 && (
+        <div className="fixed bottom-0 left-0 w-full bg-white/80 backdrop-blur-md border-t border-slate-200 p-6 z-40">
+          <div className="max-w-3xl mx-auto flex items-center justify-between gap-4">
+            <button
+              onClick={handlePrev}
+              disabled={currentStep === 0}
+              className={`flex items-center gap-2 px-8 py-4 rounded-2xl font-bold transition-all ${
+                currentStep === 0 
+                ? 'text-slate-300 cursor-not-allowed' 
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              <ArrowRight size={20} />
+              <span>السابق</span>
+            </button>
+
+            <button
+              onClick={handleNext}
+              className="flex items-center gap-2 px-10 py-4 bg-indigo-600 text-white rounded-2xl font-black hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200"
+            >
+              <span>التالي</span>
+              <ArrowLeft size={20} />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

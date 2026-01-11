@@ -177,7 +177,7 @@ const App: React.FC = () => {
       <main className="max-w-7xl mx-auto px-6 py-10">
         {view === 'form' && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <AssessmentForm onSubmit={handleSubmit} />
+            <AssessmentForm onSubmit={handleSubmit} isSubmitting={isSubmitting} />
           </div>
         )}
 
@@ -248,11 +248,17 @@ const App: React.FC = () => {
             {lastSubmitted && (
               <div className="flex justify-center gap-4">
                 <button
-                  onClick={() => downloadResponse(lastSubmitted)}
-                  className="flex items-center gap-2 px-8 py-4 bg-slate-100 text-slate-700 rounded-2xl font-bold hover:bg-slate-200 transition-colors"
+                  onClick={() => {
+                    localStorage.removeItem('hasSubmitted');
+                    localStorage.removeItem('lastSubmitted');
+                    setLastSubmitted(null);
+                    setView('form');
+                    window.location.hash = 'form';
+                  }}
+                  className="flex items-center gap-2 px-8 py-4 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200"
                 >
-                  <Download size={20} />
-                  تحميل نسخة
+                  <FileText size={20} />
+                  بدء تقييم جديد
                 </button>
               </div>
             )}
