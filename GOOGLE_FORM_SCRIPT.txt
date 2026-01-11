@@ -1,0 +1,108 @@
+function createEmployeeAssessmentForm() {
+  // 1. Create the form
+  var form = FormApp.create('نموذج التقييم الذاتي للموظف');
+  
+  // Set description
+  form.setDescription('يرجى ملء هذا النموذج لتقييم أدائك خلال الفترة الماضية. كن صادقاً وموضوعياً في إجاباتك.');
+  
+  // 2. Add Questions
+  
+  // Section 1: Personal Information
+  form.addSectionHeaderItem().setTitle('البيانات الشخصية');
+  
+  form.addTextItem()
+    .setTitle('الاسم الرباعي')
+    .setRequired(true);
+    
+  form.addTextItem()
+    .setTitle('المسمى الوظيفي')
+    .setRequired(true);
+    
+  form.addTextItem()
+    .setTitle('القسم / الإدارة')
+    .setRequired(true);
+    
+  form.addDateItem()
+    .setTitle('تاريخ التقييم')
+    .setRequired(true);
+
+  // Section 2: Performance Assessment
+  form.addSectionHeaderItem().setTitle('تقييم الأداء');
+  
+  // Define rating scale
+  var ratingScale = ['1 - ضعيف', '2 - مقبول', '3 - جيد', '4 - جيد جداً', '5 - ممتاز'];
+  
+  // Performance Questions
+  var performanceQuestions = [
+    'جودة العمل (الدقة، الإتقان، الخلو من الأخطاء)',
+    'كمية العمل (حجم الإنجاز مقارنة بالمستهدف)',
+    'الالتزام بالمواعيد (الحضور، الانصراف، تسليم المهام)',
+    'المبادرة والابتكار (تقديم أفكار جديدة، حل المشكلات)',
+    'العمل الجماعي (التعاون مع الزملاء، المشاركة في الفريق)'
+  ];
+  
+  performanceQuestions.forEach(function(q) {
+    form.addScaleItem()
+      .setTitle(q)
+      .setBounds(1, 5)
+      .setLabels('ضعيف', 'ممتاز')
+      .setRequired(true);
+  });
+
+  // Section 3: Goals and Achievements
+  form.addSectionHeaderItem().setTitle('الأهداف والإنجازات');
+  
+  form.addParagraphTextItem()
+    .setTitle('ما هي أهم إنجازاتك خلال الفترة الماضية؟')
+    .setRequired(true);
+    
+  form.addParagraphTextItem()
+    .setTitle('ما هي التحديات التي واجهتك وكيف تغلبت عليها؟')
+    .setRequired(true);
+    
+  form.addParagraphTextItem()
+    .setTitle('ما هي أهدافك للفترة القادمة؟')
+    .setRequired(true);
+
+  // Section 4: Training Needs
+  form.addSectionHeaderItem().setTitle('الاحتياجات التدريبية');
+  
+  form.addParagraphTextItem()
+    .setTitle('هل هناك مهارات معينة ترغب في تطويرها؟')
+    .setRequired(false);
+    
+  form.addParagraphTextItem()
+    .setTitle('مقترحات لتحسين بيئة العمل')
+    .setRequired(false);
+
+  // Section 5: Job Satisfaction
+  form.addSectionHeaderItem().setTitle('الرضا الوظيفي');
+
+  var satisfactionOptions = [
+    'راضٍ جداً',
+    'راضٍ',
+    'محايد',
+    'غير راضٍ',
+    'غير راضٍ جداً'
+  ];
+
+  form.addMultipleChoiceItem()
+    .setTitle('كيف تقيم مستوى رضاك العام عن العمل؟')
+    .setChoiceValues(satisfactionOptions)
+    .setRequired(true);
+
+  var promotionOptions = [
+    'نعم، أنا جاهز الآن',
+    'أحتاج إلى بعض التدريب أولاً',
+    'ليس في الوقت الحالي'
+  ];
+
+  form.addMultipleChoiceItem() // Fixed: was addChoiceItem
+    .setTitle('هل تعتقد أنك مؤهل للترقية أو لتحمل مسؤوليات إضافية؟')
+    .setChoiceValues(promotionOptions)
+    .setRequired(true);
+
+  // Log the URL
+  Logger.log('Form created: ' + form.getEditUrl());
+  Logger.log('Published URL: ' + form.getPublishedUrl());
+}

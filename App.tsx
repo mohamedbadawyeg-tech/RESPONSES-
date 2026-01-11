@@ -1,14 +1,16 @@
-
 import React, { useState, useEffect } from 'react';
 import AssessmentForm from './components/AssessmentForm';
 import AdminDashboard from './components/AdminDashboard';
 import { AssessmentResponse } from './types';
-import { LayoutDashboard, FileText, CheckCircle2, Download, Database } from 'lucide-react';
+import { LayoutDashboard, FileText, CheckCircle2, Download, Database, Lock } from 'lucide-react';
 
 const App: React.FC = () => {
   const [view, setView] = useState<'form' | 'admin' | 'success'>('form');
   const [responses, setResponses] = useState<AssessmentResponse[]>([]);
   const [lastSubmitted, setLastSubmitted] = useState<AssessmentResponse | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [password, setPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -21,27 +23,67 @@ const App: React.FC = () => {
     window.addEventListener('hashchange', handleHashChange);
     handleHashChange();
 
-    const saved = localStorage.getItem('assessment_responses_v2');
-    if (saved) {
-      setResponses(JSON.parse(saved));
-    }
-
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
-  const handleSubmit = (response: AssessmentResponse) => {
-    const updated = [...responses, response];
-    setResponses(updated);
-    setLastSubmitted(response);
-    localStorage.setItem('assessment_responses_v2', JSON.stringify(updated));
-    window.location.hash = 'success';
+  // Fetch responses when entering admin view and authenticated
+  useEffect(() => {
+    if (view === 'admin' && isAuthenticated) {
+      fetch('/api/responses')
+        .then(res => res.json())
+        .then(data => setResponses(data))
+        .catch(err => console.error('Failed to fetch responses', err));
+    }
+  }, [view, isAuthenticated]);
+
+  const handleSubmit = async (response: AssessmentResponse) => {
+    try {
+      const res = await fetch('/api/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(response),
+      });
+
+      if (res.ok) {
+        setLastSubmitted(response);
+        window.location.hash = 'success';
+      } else {
+        alert('حدث خطأ أثناء إرسال النموذج. يرجى المحاولة مرة أخرى.');
+      }
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      alert('فشل الاتصال بالخادم.');
+    }
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setIsAuthenticated(true);
+        setLoginError('');
+      } else {
+        setLoginError('كلمة المرور غير صحيحة');
+      }
+    } catch (error) {
+      setLoginError('حدث خطأ في الاتصال');
+    }
   };
 
   const handleImport = (newResponses: AssessmentResponse[]) => {
+    // For now, imports in admin dashboard just update local state or could POST to backend
+    // Implementing simpler version where it just updates view
     const updated = [...responses, ...newResponses];
     const unique = Array.from(new Map(updated.map(item => [item.id, item])).values());
     setResponses(unique);
-    localStorage.setItem('assessment_responses_v2', JSON.stringify(unique));
+    // Optionally save imported ones to backend:
+    newResponses.forEach(r => handleSubmit(r));
   };
 
   const downloadResponse = (res: AssessmentResponse) => {
@@ -101,54 +143,80 @@ const App: React.FC = () => {
 
         {view === 'admin' && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <AdminDashboard 
-              responses={responses} 
-              onImport={handleImport} 
-              onClear={() => {
-                if(confirm('هل أنت متأكد من مسح كافة السجلات؟ لا يمكن التراجع عن هذه الخطوة.')) {
-                  setResponses([]);
-                  localStorage.removeItem('assessment_responses_v2');
-                }
-              }}
-            />
+            {!isAuthenticated ? (
+              <div className="max-w-md mx-auto mt-20 bg-white p-10 rounded-3xl shadow-xl border border-slate-100">
+                <div className="flex justify-center mb-6">
+                  <div className="bg-indigo-50 p-4 rounded-full text-indigo-600">
+                    <Lock size={32} />
+                  </div>
+                </div>
+                <h2 className="text-2xl font-black text-center text-slate-800 mb-2">تسجيل دخول المسؤول</h2>
+                <p className="text-center text-slate-500 mb-8">يرجى إدخال كلمة المرور للوصول إلى لوحة التحكم</p>
+                
+                <form onSubmit={handleLogin} className="space-y-4">
+                  <div>
+                    <input
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-2xl focus:border-indigo-500 focus:bg-white transition-all outline-none text-center text-lg"
+                      placeholder="كلمة المرور"
+                      autoFocus
+                    />
+                  </div>
+                  {loginError && (
+                    <p className="text-red-500 text-sm text-center font-bold">{loginError}</p>
+                  )}
+                  <button
+                    type="submit"
+                    className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200"
+                  >
+                    دخول
+                  </button>
+                </form>
+              </div>
+            ) : (
+              <AdminDashboard 
+                responses={responses} 
+                onImport={handleImport} 
+                onClear={() => setResponses([])} 
+              />
+            )}
           </div>
         )}
 
-        {view === 'success' && (
-          <div className="flex flex-col items-center justify-center min-h-[65vh] text-center bg-white p-16 rounded-[40px] shadow-2xl shadow-indigo-50 border border-indigo-50 animate-in zoom-in duration-500">
-            <div className="w-28 h-28 bg-green-50 text-green-500 rounded-full flex items-center justify-center mb-8 border border-green-100 animate-bounce">
-              <CheckCircle2 size={56} />
+        {view === 'success' && lastSubmitted && (
+          <div className="max-w-2xl mx-auto mt-20 bg-white p-12 rounded-[40px] shadow-xl border border-slate-100 text-center animate-in zoom-in duration-500">
+            <div className="w-24 h-24 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckCircle2 size={48} />
             </div>
-            <h2 className="text-4xl font-black mb-4 text-slate-800">تمت العملية بنجاح!</h2>
-            <p className="text-slate-500 text-xl mb-10 max-w-lg leading-relaxed">
-              شكراً لك <span className="text-indigo-600 font-bold">{lastSubmitted?.employeeName}</span>. 
-              لقد قمت بإتمام تقييمك بنجاح. يرجى الضغط على الزر أدناه لتحميل نسخة التقييم وإرسالها لمديرك.
+            <h2 className="text-3xl font-black text-slate-800 mb-4">تم إرسال التقييم بنجاح!</h2>
+            <p className="text-slate-500 text-lg mb-8 leading-relaxed">
+              شكرًا لك {lastSubmitted.employeeName}.<br/>
+              تم حفظ تقييمك بنجاح في النظام ويمكن للمسؤولين الاطلاع عليه.
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-5">
-              {lastSubmitted && (
-                <button
-                  onClick={() => downloadResponse(lastSubmitted)}
-                  className="flex items-center justify-center gap-3 bg-indigo-600 hover:bg-indigo-700 text-white px-10 py-5 rounded-[22px] font-black text-lg transition-all shadow-xl shadow-indigo-200 hover:-translate-y-1"
-                >
-                  <Download size={24} />
-                  <span>تحميل ملف التقييم النهائي</span>
-                </button>
-              )}
+            <div className="flex justify-center gap-4">
               <button
-                onClick={() => window.location.hash = 'form'}
-                className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-10 py-5 rounded-[22px] font-bold text-lg transition-all"
+                onClick={() => downloadResponse(lastSubmitted)}
+                className="flex items-center gap-2 px-8 py-4 bg-slate-100 text-slate-700 rounded-2xl font-bold hover:bg-slate-200 transition-colors"
               >
-                إرسال رد آخر
+                <Download size={20} />
+                تحميل نسخة
+              </button>
+              <button
+                onClick={() => {
+                  setLastSubmitted(null);
+                  window.location.hash = 'form';
+                }}
+                className="px-8 py-4 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200"
+              >
+                تقييم جديد
               </button>
             </div>
           </div>
         )}
       </main>
-
-      <footer className="py-12 text-center text-slate-400 text-sm">
-        <p className="font-medium">© {new Date().getFullYear()} نظام إدارة المواهب والتقييم الذاتي المؤسسي</p>
-      </footer>
     </div>
   );
 };
