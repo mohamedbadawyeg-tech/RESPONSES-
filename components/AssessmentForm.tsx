@@ -184,7 +184,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({ onSubmit, isSubmitting 
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-black text-slate-500 mr-1">الفرع / الجهة</label>
+              <label className="text-sm font-black text-slate-500 mr-1">موقع العمل</label>
               <input
                 required
                 className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-2xl focus:border-indigo-500 focus:bg-white transition-all outline-none text-lg font-bold"

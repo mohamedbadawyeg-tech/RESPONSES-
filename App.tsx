@@ -238,24 +238,6 @@ const App: React.FC = () => {
                 </>
               )}
             </p>
-            
-            {lastSubmitted && (
-              <div className="flex justify-center gap-4">
-                <button
-                  onClick={() => {
-                    localStorage.removeItem('hasSubmitted');
-                    localStorage.removeItem('lastSubmitted');
-                    setLastSubmitted(null);
-                    setView('form');
-                    window.location.hash = 'form';
-                  }}
-                  className="flex items-center gap-2 px-8 py-4 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200"
-                >
-                  <FileText size={20} />
-                  بدء تقييم جديد
-                </button>
-              </div>
-            )}
           </div>
         )}
       </main>
