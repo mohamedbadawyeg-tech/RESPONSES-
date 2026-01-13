@@ -363,10 +363,22 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({ onSubmit, isSubmitting 
 
             <button
               onClick={handleSubmit}
-              className="w-full flex items-center justify-center gap-4 bg-white text-indigo-900 hover:bg-indigo-50 px-12 py-6 rounded-[24px] font-black text-xl transition-all hover:scale-[1.02]"
+              disabled={isSubmitting}
+              className={`w-full flex items-center justify-center gap-4 bg-white text-indigo-900 px-12 py-6 rounded-[24px] font-black text-xl transition-all ${
+                isSubmitting ? 'opacity-75 cursor-wait' : 'hover:bg-indigo-50 hover:scale-[1.02]'
+              }`}
             >
-              <span>حفظ وإرسال التقييم النهائي</span>
-              <Save size={24} />
+              {isSubmitting ? (
+                <>
+                  <div className="w-6 h-6 border-4 border-indigo-900 border-t-transparent rounded-full animate-spin" />
+                  <span>جاري الإرسال...</span>
+                </>
+              ) : (
+                <>
+                  <span>حفظ وإرسال التقييم النهائي</span>
+                  <Save size={24} />
+                </>
+              )}
             </button>
           </div>
         </div>
